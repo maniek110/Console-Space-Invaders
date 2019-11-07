@@ -11,11 +11,12 @@
 #include <string>
 #include <stdio.h>
 #include <sstream>
-#include <algorithm> 
+#include <algorithm>
+
 using namespace std;
 struct Record {
-	string Name="";
-	int points=0;
+	string Name = "";
+	int points = 0;
 };
 struct Obj {
 	int x;
@@ -28,27 +29,26 @@ wchar_t* screen;
 int score;
 HANDLE console;
 bool reset = false;
-vector<Record> scoresVector;
-vector<Obj>::iterator i;
-vector<Obj>::iterator s;
+vector < Record > scoresVector;
+vector < Obj > ::iterator enemyIterator;
+vector < Obj > ::iterator enemyAttackIterator;
 int nSpeedCount;
-int movementor;
+int enemyMovementVariable;
 int enemyCount;
 bool fire, isPlaying;
 int enemySpeed;
 int fx = NULL;
 int fy = NULL;
-int howHard=NULL;
+int howHard = NULL;
 int x = 10;
 int y = 20;
 //Enemy* enemies = NULL;
-vector<Obj> enems;
-vector<Obj> shoots;
+vector < Obj > enems;
+vector < Obj > shoots;
 
 void input() {
 	if (_kbhit()) {
-		switch (_getch())
-		{
+		switch (_getch()) {
 		case 'a':
 			//if (x > 1)
 			x--;
@@ -72,13 +72,13 @@ void input() {
 		}
 	}
 }
-void initShoot() {
+void initShot() {
 	for (int i = 1; i <= howHard; i++) {
 		Obj* temp = new Obj;
-		temp->isAlive = false;
-		temp->x = (i % 10) * 2 + 1;
-		temp->y = (i / 11) * 2;
-		temp->spr = 'o';
+		temp -> isAlive = false;
+		temp -> x = (i % 10) * 2 + 1;
+		temp -> y = (i / 11) * 2;
+		temp -> spr = 'o';
 		shoots.push_back(*temp);
 	}
 }
@@ -86,12 +86,12 @@ void initEnemy() {
 	enemySpeed = 25;
 	enemyCount = 30;
 	reset = false;
-	for (int i = 1; i <= 30; i++) {
+	for (int i = 0; i < 30; i++) {
 		Obj* temp = new Obj;
-		temp->isAlive = true;
-		temp->x = (i % 10) * 2 + 1;
-		temp->y = (i / 11) * 2 + 2;
-		temp->spr = 'V';
+		temp -> isAlive = true;
+		temp -> x = (i % 10) * 2 + 1;
+		temp -> y = (i / 10) * 2 + 2;
+		temp -> spr = 'V';
 		enems.push_back(*temp);
 	}
 }
@@ -99,10 +99,10 @@ void initEnemy() {
 void logic() {
 	//PLAYER MOVEMENT
 	input();
-	//SHOOTING LOGIC
+	//PLAYER SHOOTING LOGIC
 	if (fire && fx == NULL) {
 		fx = x;
-		fy = y - 1;
+		fy = y;
 	}
 	fy--;
 	if (fy <= 0) {
@@ -111,12 +111,11 @@ void logic() {
 		fy = NULL;
 	}
 	//CHECK HIT
-	if (enemyCount == 0) reset = true;
-	for (i = enems.begin(); i != enems.end(); i++) {
+	for (enemyIterator = enems.begin(); enemyIterator != enems.end(); enemyIterator++) {
 		//Just to check if enemy y==player y
-		if (i->y >= y && i->isAlive)isPlaying = false;
-		if ((i->y == fy && i->x == fx) && i->isAlive) {
-			i->isAlive = false;
+		if (enemyIterator -> y >= y && enemyIterator -> isAlive) isPlaying = false;
+		if ((enemyIterator -> y == fy && enemyIterator -> x == fx) && enemyIterator -> isAlive) {
+			enemyIterator -> isAlive = false;
 			fire = false;
 			fx = NULL;
 			fy = NULL;
@@ -125,72 +124,71 @@ void logic() {
 			Beep(523, 100);
 		}
 	}
+	if (enemyCount == 0) reset = true;
 	if (reset) {
 		enems.clear();
 		initEnemy();
 	}
 	//GAME BOUNDARY FOR PLAYER
-	if (x <= 1)x = 1;
-	else if (x >= 25)x = 25;
+	if (x <= 1) x = 1;
+	else if (x >= 25) x = 25;
 	//ENEMY MOVEMENT
 	if (nSpeedCount % enemySpeed == 0) {
-		for (i = enems.begin(); i != enems.end(); i++) {
-			if (i->x <= 1 && i->isAlive) {
-				movementor = 1;
-				if (enemySpeed > 5)enemySpeed -= 1;
-				vector<Obj>::iterator e;
+		for (enemyIterator = enems.begin(); enemyIterator != enems.end(); enemyIterator++) {
+			if (enemyIterator -> x <= 1 && enemyIterator -> isAlive) {
+				enemyMovementVariable = 1;
+				if (enemySpeed > 5) enemySpeed -= 1;
+				vector < Obj > ::iterator e;
 				for (e = enems.begin(); e != enems.end(); e++)
-					e->y++;
+					e -> y++;
 			}
-			else if (i->x >= 25 && i->isAlive) {
-				movementor = -1;
-				if (enemySpeed > 5)enemySpeed -= 1;
-				vector<Obj>::iterator e;
+			else if (enemyIterator -> x >= 25 && enemyIterator -> isAlive) {
+				enemyMovementVariable = -1;
+				if (enemySpeed > 5) enemySpeed -= 1;
+				vector < Obj > ::iterator e;
 				for (e = enems.begin(); e != enems.end(); e++)
-					e->y++;
+					e -> y++;
 			}
 
 		}
-		for (i = enems.begin(); i != enems.end(); i++) {
-			i->x += movementor;
+		for (enemyIterator = enems.begin(); enemyIterator != enems.end(); enemyIterator++) {
+			enemyIterator -> x += enemyMovementVariable;
 		}
 	}
-	//ENEMY ATTACK
-	//
-	if (nSpeedCount % 50 == 0) {
-		for (s = shoots.begin(); s != shoots.end(); s++) {
-			if (!s->isAlive) {
+
+	//ENEMY SHOOT LOGIC
+	for (enemyAttackIterator = shoots.begin(); enemyAttackIterator != shoots.end(); enemyAttackIterator++) {
+		if (nSpeedCount % 200 == 0) {
+			if (!enemyAttackIterator -> isAlive) {
 				int temp = rand() % 29 + 0;
 				Obj tempEnemy = enems[temp];
 				while (tempEnemy.isAlive != true) {
 					temp = rand() % 29 + 0;
 					tempEnemy = enems[temp];
 				}
-				s->isAlive = true;
-				s->x = tempEnemy.x;
-				s->y = tempEnemy.y;
+				enemyAttackIterator -> isAlive = true;
+				enemyAttackIterator -> x = tempEnemy.x;
+				enemyAttackIterator -> y = tempEnemy.y;
 			}
 		}
-	}
-	for (s = shoots.begin(); s != shoots.end(); s++) {
-		if (s->x == x && s->y == y) {
+		if (enemyAttackIterator -> x == x && enemyAttackIterator -> y == y) {
 			lives--;
 			//Beep(392, 100);
 		}
-		if (s->y >= y) {
-			s->isAlive = false;
-			s->x = NULL;
-			s->y = NULL;
+		if (enemyAttackIterator -> y >= y) {
+			enemyAttackIterator -> isAlive = false;
+			enemyAttackIterator -> x = NULL;
+			enemyAttackIterator -> y = NULL;
 		}
-		if (s->isAlive) s->y++;
+		if (enemyAttackIterator -> isAlive) enemyAttackIterator -> y++;
 	}
 	//CHECK AMOUNT OF LIVES
-	if (lives <= 0)isPlaying = false;
+	if (lives <= 0) isPlaying = false;
 	//
 	//INCREASE SPEED COUNT
 	nSpeedCount++;
 	//RESET SPEED COUNT
-	if (nSpeedCount >= 1000)nSpeedCount = 0;
+	if (nSpeedCount >= 1000) nSpeedCount = 0;
 }
 
 void draw() {
@@ -198,156 +196,255 @@ void draw() {
 	screen[80 * y + x] = L'A';
 	//DRAW BOUNDARY
 	for (int i = 0; i < 80 * 30; i++) {
-		if (i < 46)screen[i] = L'#';
-		if (i % 80 == 0 && i < 80 * (y + 2))screen[i] = L'|';
-		if (i % 80 == 0 && i < 80 * (y + 2))screen[i + 26] = L'|';
-		if (i % 80 == 0 && i < 80 * (y + 2))screen[i + 46] = L'|';
-		if (i % 80 < 46)screen[(y + 1) * 80 + (i % 80)] = L'#';
+		if (i < 46) screen[i] = L'#';
+		if (i % 80 == 0 && i < 80 * (y + 2)) screen[i] = L'|';
+		if (i % 80 == 0 && i < 80 * (y + 2)) screen[i + 26] = L'|';
+		if (i % 80 == 0 && i < 80 * (y + 2)) screen[i + 46] = L'|';
+		if (i % 80 < 46) screen[(y + 1) * 80 + (i % 80)] = L'#';
 	}
 
 	//DRAW ENEMIES
 
-	for (i = enems.begin(); i != enems.end(); i++) {
-		if (i->isAlive)screen[80 * i->y + i->x] = i->spr;
+	for (enemyIterator = enems.begin(); enemyIterator != enems.end(); enemyIterator++) {
+		if (enemyIterator -> isAlive) screen[80 * enemyIterator -> y + enemyIterator -> x] = enemyIterator -> spr;
 	}
-	for (i = shoots.begin(); i != shoots.end(); i++) {
-		if (i->isAlive)screen[80 * i->y + i->x] = i->spr;
+	//DRAW BULLETS
+	for (enemyIterator = shoots.begin(); enemyIterator != shoots.end(); enemyIterator++) {
+		if (enemyIterator -> isAlive) screen[80 * enemyIterator -> y + enemyIterator -> x] = enemyIterator -> spr;
 	}
-	if (fire)screen[80 * fy + fx] = L'.';
+	if (fire) screen[80 * fy + fx] = L'.';
 
 	//DRAW SCORE
-	swprintf_s(&screen[80*3 + 32], 8+to_string(score).length(), L"SCORE: %d",score);
+	swprintf_s(&screen[80 * 3 + 32], 8 + to_string(score).length(), L"SCORE: %d", score);
 	//setlocale(LC_ALL, "pl_PL.utf8");
 	//for (int i = 0; i < scoresVector.size() / 3; i++) {
 	//	string tempText = (scoresVector.at(i) + " " + scoresVector.at(i + 1) + " " + scoresVector.at(i + 2));
 	//	swprintf_s(&screen[2 * 80 + 22 + 6], 16, L"SCORE: %s", scoresVector.at(6));
 	//	swprintf_s(&screen[80 * (4 + i) + 32], (scoresVector.at(i).length() + scoresVector.at(i + 1).length() + scoresVector.at(i + 2).length()), L"%s",tempText);
 	//}
-	
+
 	//DRAW HEART
-	for(int i=0;i<lives;i++)
-	swprintf_s(&screen[80 * 4 + 32+i], 2, L"\u2665");
+	for (int i = 0; i < lives; i++)
+		swprintf_s(&screen[80 * 4 + 32 + i], 2, L"\u2665");
 }
 
 void music() {
 	/*	Beep(598.5, 500);//F
-		Beep(780.0, 300);//a
-		Beep(623.3, 500);//C
-		Beep(780.0, 400);//a
-		Beep(598.5, 300);//F
-		Beep(487.3, 300);//d
-		Beep(487.3, 300);//d
-		Beep(487.3, 300);//d
-		*/
-		
-	Beep(330, 100); Sleep(100);
-	Beep(330, 100); Sleep(300);
-	Beep(330, 100); Sleep(300);
-	Beep(262, 100); Sleep(100);
-	Beep(330, 100); Sleep(300);
-	Beep(392, 100); Sleep(700);
-	Beep(196, 100); Sleep(700);
-	Beep(262, 300); Sleep(300);
-	Beep(196, 300); Sleep(300);
-	Beep(164, 300); Sleep(300);
-	Beep(220, 300); Sleep(100);
-	Beep(246, 100); Sleep(300);
+	  Beep(780.0, 300);//a
+	  Beep(623.3, 500);//C
+	  Beep(780.0, 400);//a
+	  Beep(598.5, 300);//F
+	  Beep(487.3, 300);//d
+	  Beep(487.3, 300);//d
+	  Beep(487.3, 300);//d
+	  */
+
+	Beep(330, 100);
+	Sleep(100);
+	Beep(330, 100);
+	Sleep(300);
+	Beep(330, 100);
+	Sleep(300);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(330, 100);
+	Sleep(300);
+	Beep(392, 100);
+	Sleep(700);
+	Beep(196, 100);
+	Sleep(700);
+	Beep(262, 300);
+	Sleep(300);
+	Beep(196, 300);
+	Sleep(300);
+	Beep(164, 300);
+	Sleep(300);
+	Beep(220, 300);
+	Sleep(100);
+	Beep(246, 100);
+	Sleep(300);
 	Beep(233, 200);
-	Beep(220, 100); Sleep(300);
-	Beep(196, 100); Sleep(150);
-	Beep(330, 100); Sleep(150);
-	Beep(392, 100); Sleep(150);
-	Beep(440, 100); Sleep(300);
-	Beep(349, 100); Sleep(100);
-	Beep(392, 100); Sleep(300);
-	Beep(330, 100); Sleep(300);
-	Beep(262, 100); Sleep(100);
-	Beep(294, 100); Sleep(100);
-	Beep(247, 100); Sleep(500);
-	Beep(262, 300); Sleep(300);
-	Beep(196, 300); Sleep(300);
-	Beep(164, 300); Sleep(300);
-	Beep(220, 300); Sleep(100);
-	Beep(246, 100); Sleep(300);
+	Beep(220, 100);
+	Sleep(300);
+	Beep(196, 100);
+	Sleep(150);
+	Beep(330, 100);
+	Sleep(150);
+	Beep(392, 100);
+	Sleep(150);
+	Beep(440, 100);
+	Sleep(300);
+	Beep(349, 100);
+	Sleep(100);
+	Beep(392, 100);
+	Sleep(300);
+	Beep(330, 100);
+	Sleep(300);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(294, 100);
+	Sleep(100);
+	Beep(247, 100);
+	Sleep(500);
+	Beep(262, 300);
+	Sleep(300);
+	Beep(196, 300);
+	Sleep(300);
+	Beep(164, 300);
+	Sleep(300);
+	Beep(220, 300);
+	Sleep(100);
+	Beep(246, 100);
+	Sleep(300);
 	Beep(233, 200);
-	Beep(220, 100); Sleep(300);
-	Beep(196, 100); Sleep(150);
-	Beep(330, 100); Sleep(150);
-	Beep(392, 100); Sleep(150);
-	Beep(440, 100); Sleep(300);
-	Beep(349, 100); Sleep(100);
-	Beep(392, 100); Sleep(300);
-	Beep(330, 100); Sleep(300);
-	Beep(262, 100); Sleep(100);
-	Beep(294, 100); Sleep(100);
-	Beep(247, 100); Sleep(900);
-	Beep(392, 100); Sleep(100);
-	Beep(370, 100); Sleep(100);
-	Beep(349, 100); Sleep(100);
-	Beep(311, 100); Sleep(300);
-	Beep(330, 100); Sleep(300);
-	Beep(207, 100); Sleep(100);
-	Beep(220, 100); Sleep(100);
-	Beep(262, 100); Sleep(300);
-	Beep(220, 100); Sleep(100);
-	Beep(262, 100); Sleep(100);
-	Beep(294, 100); Sleep(500);
-	Beep(392, 100); Sleep(100);
-	Beep(370, 100); Sleep(100);
-	Beep(349, 100); Sleep(100);
-	Beep(311, 100); Sleep(300);
-	Beep(330, 100); Sleep(300);
-	Beep(523, 100); Sleep(300);
-	Beep(523, 100); Sleep(100);
-	Beep(523, 100); Sleep(1100);
-	Beep(392, 100); Sleep(100);
-	Beep(370, 100); Sleep(100);
-	Beep(349, 100); Sleep(100);
-	Beep(311, 100); Sleep(300);
-	Beep(330, 100); Sleep(300);
-	Beep(207, 100); Sleep(100);
-	Beep(220, 100); Sleep(100);
-	Beep(262, 100); Sleep(300);
-	Beep(220, 100); Sleep(100);
-	Beep(262, 100); Sleep(100);
-	Beep(294, 100); Sleep(500);
-	Beep(311, 300); Sleep(300);
-	Beep(296, 300); Sleep(300);
-	Beep(262, 300); Sleep(1300);
-	Beep(262, 100); Sleep(100);
-	Beep(262, 100); Sleep(300);
-	Beep(262, 100); Sleep(300);
-	Beep(262, 100); Sleep(100);
-	Beep(294, 100); Sleep(300);
-	Beep(330, 200); Sleep(50);
-	Beep(262, 200); Sleep(50);
-	Beep(220, 200); Sleep(50);
-	Beep(196, 100); Sleep(700);
-	Beep(262, 100); Sleep(100);
-	Beep(262, 100); Sleep(300);
-	Beep(262, 100); Sleep(300);
-	Beep(262, 100); Sleep(100);
-	Beep(294, 100); Sleep(100);
-	Beep(330, 100); Sleep(700);
-	Beep(440, 100); Sleep(300);
-	Beep(392, 100); Sleep(500);
-	Beep(262, 100); Sleep(100);
-	Beep(262, 100); Sleep(300);
-	Beep(262, 100); Sleep(300);
-	Beep(262, 100); Sleep(100);
-	Beep(294, 100); Sleep(300);
-	Beep(330, 200); Sleep(50);
-	Beep(262, 200); Sleep(50);
-	Beep(220, 200); Sleep(50);
-	Beep(196, 100); Sleep(700);
+	Beep(220, 100);
+	Sleep(300);
+	Beep(196, 100);
+	Sleep(150);
+	Beep(330, 100);
+	Sleep(150);
+	Beep(392, 100);
+	Sleep(150);
+	Beep(440, 100);
+	Sleep(300);
+	Beep(349, 100);
+	Sleep(100);
+	Beep(392, 100);
+	Sleep(300);
+	Beep(330, 100);
+	Sleep(300);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(294, 100);
+	Sleep(100);
+	Beep(247, 100);
+	Sleep(900);
+	Beep(392, 100);
+	Sleep(100);
+	Beep(370, 100);
+	Sleep(100);
+	Beep(349, 100);
+	Sleep(100);
+	Beep(311, 100);
+	Sleep(300);
+	Beep(330, 100);
+	Sleep(300);
+	Beep(207, 100);
+	Sleep(100);
+	Beep(220, 100);
+	Sleep(100);
+	Beep(262, 100);
+	Sleep(300);
+	Beep(220, 100);
+	Sleep(100);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(294, 100);
+	Sleep(500);
+	Beep(392, 100);
+	Sleep(100);
+	Beep(370, 100);
+	Sleep(100);
+	Beep(349, 100);
+	Sleep(100);
+	Beep(311, 100);
+	Sleep(300);
+	Beep(330, 100);
+	Sleep(300);
+	Beep(523, 100);
+	Sleep(300);
+	Beep(523, 100);
+	Sleep(100);
+	Beep(523, 100);
+	Sleep(1100);
+	Beep(392, 100);
+	Sleep(100);
+	Beep(370, 100);
+	Sleep(100);
+	Beep(349, 100);
+	Sleep(100);
+	Beep(311, 100);
+	Sleep(300);
+	Beep(330, 100);
+	Sleep(300);
+	Beep(207, 100);
+	Sleep(100);
+	Beep(220, 100);
+	Sleep(100);
+	Beep(262, 100);
+	Sleep(300);
+	Beep(220, 100);
+	Sleep(100);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(294, 100);
+	Sleep(500);
+	Beep(311, 300);
+	Sleep(300);
+	Beep(296, 300);
+	Sleep(300);
+	Beep(262, 300);
+	Sleep(1300);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(262, 100);
+	Sleep(300);
+	Beep(262, 100);
+	Sleep(300);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(294, 100);
+	Sleep(300);
+	Beep(330, 200);
+	Sleep(50);
+	Beep(262, 200);
+	Sleep(50);
+	Beep(220, 200);
+	Sleep(50);
+	Beep(196, 100);
+	Sleep(700);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(262, 100);
+	Sleep(300);
+	Beep(262, 100);
+	Sleep(300);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(294, 100);
+	Sleep(100);
+	Beep(330, 100);
+	Sleep(700);
+	Beep(440, 100);
+	Sleep(300);
+	Beep(392, 100);
+	Sleep(500);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(262, 100);
+	Sleep(300);
+	Beep(262, 100);
+	Sleep(300);
+	Beep(262, 100);
+	Sleep(100);
+	Beep(294, 100);
+	Sleep(300);
+	Beep(330, 200);
+	Sleep(50);
+	Beep(262, 200);
+	Sleep(50);
+	Beep(220, 200);
+	Sleep(50);
+	Beep(196, 100);
+	Sleep(700);
 }
 void readScores() {
 	string line;
 	ifstream file("Scores.txt");
 	if (file.is_open()) {
-		while (getline(file,line)) {
+		while (getline(file, line)) {
 			istringstream strema(line);
-			vector<string> tempLine;
+			vector < string > tempLine;
 			string tempPart;
 			while (getline(strema, tempPart, ',')) {
 				//cout << tempPart<<endl;
@@ -366,13 +463,9 @@ void readScores() {
 }
 void saveScores() {
 	ofstream scores("Scores.txt");
-	cout << "XXX";
-	cout << scoresVector.size();
-	Sleep(2000);
-
 	for (int i = 0; i < scoresVector.size(); i++) {
 		//cout << i+1 << ',' << scoresVector.at(i).Name << ',' << scoresVector.at(i).points << "\n";
-		scores <<i+1 << ',' << scoresVector.at(i).Name << ',' << scoresVector.at(i).points << "\n";
+		scores << i + 1 << ',' << scoresVector.at(i).Name << ',' << scoresVector.at(i).points << "\n";
 	}
 	scores.close();
 }
@@ -384,7 +477,7 @@ void addNew() {
 	playerRecord.Name = tempName;
 	playerRecord.points = score;
 	bool done = false;
-	if (scoresVector.begin()->points < playerRecord.points) {
+	if (scoresVector.begin() -> points < playerRecord.points) {
 		scoresVector.insert(scoresVector.begin(), playerRecord);
 		done = true;
 	}
@@ -398,30 +491,17 @@ void addNew() {
 	if (!done) {
 		scoresVector.push_back(playerRecord);
 	}
-	/*cout << scoresVector.at(tempCounter);
-	while (!done) {
-		if (stoi(scoresVector.at(tempCounter)) < score) {
-			scoresVector.insert(scoresVector.begin(), tempName);
-			scoresVector.insert(scoresVector.begin()-1+tempCounter, to_string(score));
-			done = true;
-		
-		}
-		else tempCounter += 2;
-	}
-	*/
 }
 
 void init() {
 	score = 0;
 	lives = 3;
 	readScores();
-	while (howHard==NULL)
-	{
-		cout << "How Hard? \nEasy -> 2 shoots \nMedium -> 4 shoots \nHard -> 8 shoots";
+	while (howHard == NULL) {
+		cout << "How Hard? \nEasy -> 2 shoots \nMedium -> 4 shoots \nHard -> 8 shoots\n";
 		char temp;
 		cin >> temp;
-		switch (temp)
-		{
+		switch (temp) {
 		case 'e':
 			howHard = 2;
 			break;
@@ -436,32 +516,28 @@ void init() {
 			break;
 		}
 	}
-	initShoot();
+	initShot();
 	initEnemy();
 	fire = false;
 	isPlaying = true;
-	movementor = 1;
+	enemyMovementVariable = 1;
 	nSpeedCount = 0;
 	screen = new wchar_t[80 * 30];
 	console = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(console);
 }
 
-
-int main()
-{
+int main() {
 	//thread th1(music, 2);
 	//music();
 	//th1.join();
 	init();
 	DWORD bytesWritten = 0;
-	while (isPlaying)
-	{
-		this_thread::sleep_for(50ms);
+	while (isPlaying) {
+		Sleep(50);
 		logic();
 		draw();
-		WriteConsoleOutputCharacter(console, screen, 80 * 30, { 0,0 }, &bytesWritten);
-
+		WriteConsoleOutputCharacter(console, screen, 80 * 30, {0,0}, &bytesWritten);
 	}
 	CloseHandle(console);
 	//cout << score;
